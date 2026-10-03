@@ -942,14 +942,33 @@ document.getElementById('addBtn').addEventListener('click', async () => {
     }
   }
 	
-	// 1. Set your current app version to match your config.xml
-const currentAppVersion = "2.3.0"; 
+// Import the functions you need from the SDKs
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyA3B1uvaCEhMF7kDN_cnxrNOREdlSBl1t8",
+  authDomain: "apo-pack-overtime-schedule.firebaseapp.com",
+  databaseURL: "https://apo-pack-overtime-schedule-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "apo-pack-overtime-schedule",
+  storageBucket: "apo-pack-overtime-schedule.firebasestorage.app",
+  messagingSenderId: "55428287155",
+  appId: "1:55428287155:web:5a1a3d425fc7d3a118bec6"
+};
+
+// Initialize Firebase and Firestore `db`
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 1. Set your current app version
+const currentAppVersion = "2.1.0";  
 
 // 2. The Firestore version check function
-async function checkAppVersionFromFirestore(db) {
+async function checkAppVersionFromFirestore(databaseInstance) {
   try {
     console.log("Checking app version from Firestore...");
-    const docRef = doc(db, "settings", "app"); 
+    const docRef = doc(databaseInstance, "settings", "app"); 
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
@@ -965,7 +984,7 @@ async function checkAppVersionFromFirestore(db) {
       console.log("Version is outdated! Blocking app...");
       document.body.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; text-align: center; padding: 20px; background: #fff3cd; color: #856404;">
-          <h1 style="margin-bottom: 10px;">⚠️️ Update Required</h1>
+          <h1 style="margin-bottom: 10px;">⚠ Update Required</h1>
           <p style="font-size: 16px; max-width: 400px; line-height: 1.5;">
             ${config.updateMessage || "Naa nay Bag o na version Mga Bossing.. "}
           </p>
@@ -985,6 +1004,7 @@ async function checkAppVersionFromFirestore(db) {
     console.error("Version check failed or offline:", error);
   }
 }
+
 function compareVersions(v1, v2) {
   const p1 = v1.split('.').map(Number);
   const p2 = v2.split('.').map(Number);
@@ -997,7 +1017,7 @@ function compareVersions(v1, v2) {
   return 0;
 }
 
-// 3. Call this when your app initializes and you have your Firestore `db` instance ready:
+// 3. Run the check immediately on launch
 checkAppVersionFromFirestore(db);
 
   function saveRosterToLocal(rosterData){
