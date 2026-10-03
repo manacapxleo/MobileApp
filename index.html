@@ -948,6 +948,7 @@ const currentAppVersion = "2.1.0";
 // 2. The Firestore version check function
 async function checkAppVersionFromFirestore(db) {
   try {
+    console.log("Checking app version from Firestore...");
     const docRef = doc(db, "settings", "app"); 
     const docSnap = await getDoc(docRef);
 
@@ -957,11 +958,14 @@ async function checkAppVersionFromFirestore(db) {
     }
 
     const config = docSnap.data();
+    console.log("Firestore config loaded:", config);
+    console.log("Current version:", currentAppVersion, "Min required:", config.minSupportedVersion);
 
     if (compareVersions(currentAppVersion, config.minSupportedVersion) < 0) {
+      console.log("Version is outdated! Blocking app...");
       document.body.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; text-align: center; padding: 20px; background: #fff3cd; color: #856404;">
-          <h1 style="margin-bottom: 10px;">⚠️ Update Required</h1>
+          <h1 style="margin-bottom: 10px;">⚠️️ Update Required</h1>
           <p style="font-size: 16px; max-width: 400px; line-height: 1.5;">
             ${config.updateMessage || "Naa nay Bag o na version Mga Bossing.. "}
           </p>
@@ -974,12 +978,13 @@ async function checkAppVersionFromFirestore(db) {
         </div>
       `;
       throw new Error("Outdated APK version blocked.");
+    } else {
+      console.log("App version is up to date.");
     }
   } catch (error) {
-    console.log("Version check skipped or offline:", error);
+    console.error("Version check failed or offline:", error);
   }
 }
-
 function compareVersions(v1, v2) {
   const p1 = v1.split('.').map(Number);
   const p2 = v2.split('.').map(Number);
