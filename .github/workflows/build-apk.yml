@@ -1,9 +1,11 @@
 name: Build Android APK
+
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout Source Code
       uses: actions/checkout@v4
@@ -16,13 +18,8 @@ jobs:
     - name: Install Cordova
       run: npm install -g cordova
 
-    - name: Create Build Environment
-      run: |
-        cordova create build-dir com.apopackhouse.app "APO Packhouse"
-        cp index.html build-dir/www/
-        cp config.xml build-dir/
-        cd build-dir
-        cordova platform add android
+    - name: Install Project Dependencies
+      run: npm install
 
     - name: Install Java
       uses: actions/setup-java@v4
@@ -30,13 +27,14 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
+    - name: Add Android Platform
+      run: cordova platform add android
+
     - name: Build Android APK
-      run: |
-        cd build-dir
-        cordova build android --device
+      run: cordova build android --debug
 
     - name: Upload APK as Artifact
       uses: actions/upload-artifact@v4
       with:
         name: apo-packhouse-apk
-        path: build-dir/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+        path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
