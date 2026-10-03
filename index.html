@@ -941,28 +941,32 @@ document.getElementById('addBtn').addEventListener('click', async () => {
       msg.className='form-msg';
     }
   }
+	
+	// 1. Set your current app version to match your config.xml
+const currentAppVersion = "1.0.0"; 
 
-	async function checkAppVersionFromConfig() {
+// 2. The Firestore version check function
+async function checkAppVersionFromFirestore(db) {
   try {
-    // Fetch your existing config.json (with a timestamp to prevent caching)
-    const response = label = await fetch('./config.json?t=' + Date.now());
-    if (!response.ok) return;
-    
-    const config = await response.json();
-    
-    // Define the version built into this specific APK
-    const apkVersion = "1.1.0"; // <-- Change this every time you release a new APK
+    const docRef = doc(db, "settings", "app"); 
+    const docSnap = await getDoc(docRef);
 
-    if (compareVersions(apkVersion, config.minSupportedVersion) < 0) {
-      // Block the app UI completely for old APKs
+    if (!docSnap.exists()) {
+      console.log("No version config found in Firestore.");
+      return;
+    }
+
+    const config = docSnap.data();
+
+    if (compareVersions(currentAppVersion, config.minSupportedVersion) < 0) {
       document.body.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; text-align: center; padding: 20px; background: #fff3cd; color: #856404;">
           <h1 style="margin-bottom: 10px;">⚠️ Update Required</h1>
           <p style="font-size: 16px; max-width: 400px; line-height: 1.5;">
-            ${config.updateMessage || "Please update your app to continue."}
+            ${config.updateMessage || "Naa nay Bag o na version Mga Bossing.. "}
           </p>
           <p style="font-size: 14px; margin-top: 10px;">
-            Your Version: <b>v${apkVersion}</b> | Required: <b>v${config.minSupportedVersion}</b>
+            Your Version: <b>v${currentAppVersion}</b> | Required: <b>v${config.minSupportedVersion}</b>
           </p>
           <a href="${config.downloadUrl || '#'}" target="_blank" style="margin-top: 20px; padding: 12px 24px; font-size: 16px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
             Download New APK
@@ -988,8 +992,8 @@ function compareVersions(v1, v2) {
   return 0;
 }
 
-// Run the check when the app launches
-checkAppVersionFromConfig();
+// 3. Call this when your app initializes and you have your Firestore `db` instance ready:
+// checkAppVersionFromFirestore(db);
 
   function saveRosterToLocal(rosterData){
     const msg=document.getElementById('csvMsg');
